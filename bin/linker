@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+BASEDIR = File.absolute_path "#{File.dirname $0}/.."
+ETCDIR = "#{BASEDIR}/etc"
+VARDIR = "#{BASEDIR}/var"
+SHAREDIR = "#{BASEDIR}/share"
+LIBDIR = "#{BASEDIR}/lib"
+
+require "#{LIBDIR}/linker"
+require 'rack'
+
+module Cfg; module_eval File.read "#{ETCDIR}/linker.conf"; end
+
+Rack::Server.start(
+  Port: Cfg::PORT,
+  app: Linker.new(Cfg::DATAFILE, Cfg::WORDFILE, Cfg::ACCESS_LOG).build
+)

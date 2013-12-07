@@ -1,0 +1,4 @@
+DATAFILE = "#{VARDIR}/linker.dat"
+WORDFILE = "#{SHAREDIR}/words.txt" # Can generate with "aspell dump master"
+PORT = 6313
+ACCESS_LOG = "#{VARDIR}/access.log"
