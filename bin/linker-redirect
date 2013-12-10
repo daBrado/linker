@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+BASEDIR = File.absolute_path "#{File.dirname $0}/.."
+ETCDIR = "#{BASEDIR}/etc"
+VARDIR = "#{BASEDIR}/var"
+SHAREDIR = "#{BASEDIR}/share"
+LIBDIR = "#{BASEDIR}/lib"
+
+require "#{LIBDIR}/redirectapp"
+require 'rack'
+
+module Cfg; module_eval File.read "#{ETCDIR}/linker.conf"; end
+
+Rack::Server.start(
+  Port: Cfg::Redirect::PORT,
+  app: RedirectApp.new(Cfg::Redirect::API_URI, log: Logger.new(Cfg::Redirect::LOG))
+)

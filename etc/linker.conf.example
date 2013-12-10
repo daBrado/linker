@@ -1,4 +1,11 @@
-DATAFILE = "#{VARDIR}/linker.dat"
-WORDFILE = "#{SHAREDIR}/words.txt" # Can generate with "aspell dump master"
-PORT = 6313
-ACCESS_LOG = "#{VARDIR}/access.log"
+module API
+  DATAFILE = "#{VARDIR}/data.pstore"
+  WORDFILE = "#{SHAREDIR}/words.txt" # Can generate with "aspell dump master"
+  LOG = "#{VARDIR}/api.log"
+  PORT = 6313
+end
+module Redirect
+  API_URI = "http://localhost:#{API::PORT}/"
+  LOG = "#{VARDIR}/redirect.log"
+  PORT = 6314
+end

@@ -6,12 +6,16 @@ VARDIR = "#{BASEDIR}/var"
 SHAREDIR = "#{BASEDIR}/share"
 LIBDIR = "#{BASEDIR}/lib"
 
-require "#{LIBDIR}/linker"
+require "#{LIBDIR}/apiapp"
+require "#{LIBDIR}/linkerapi"
 require 'rack'
 
 module Cfg; module_eval File.read "#{ETCDIR}/linker.conf"; end
 
 Rack::Server.start(
-  Port: Cfg::PORT,
-  app: Linker.new(Cfg::DATAFILE, Cfg::WORDFILE, Cfg::ACCESS_LOG).build
+  Port: Cfg::API::PORT,
+  app: APIApp.new(
+    LinkerAPI, Cfg::API::DATAFILE, Cfg::API::WORDFILE,
+    log: Logger.new(Cfg::API::LOG)
+  )
 )
