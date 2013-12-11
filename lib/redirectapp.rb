@@ -26,7 +26,7 @@ class RedirectApp
     dest_uri = @api_http.request(Net::HTTP::Get.new(File.join(@api_uri.path, 'get', id))).body rescue nil
     return [HTTP_SERVICE_UNAVAILABLE, {}, []] if !dest_uri
     return [HTTP_NOT_FOUND, {}, []] if dest_uri == ''
-    @log.info "#{req.ip} #{id} #{[dest_uri, req.referer, req.user_agent].map{|s|(s||'-').inspect}.join(' ')}"
+    @log.info "#{req.ip} #{[req.referer, req.user_agent].map{|s|(s||'-').inspect}.join(' ')} #{id} #{dest_uri.inspect}"
     [HTTP_REDIRECT_FOUND, {'Location' => dest_uri}, []]
   end
 end
