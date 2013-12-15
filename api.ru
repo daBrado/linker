@@ -1,4 +1,4 @@
-DATAFILE = './var/data.pstore'
+DATAFILE = './var/links.pstore'
 WORDFILE = './share/words.txt' # Can generate with "aspell dump master"
 LOG = './var/api.log'
 PROXY_IP = '128.120.144.61'

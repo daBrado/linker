@@ -28,22 +28,22 @@ class LinkStore
         @store[:idseed] = IDSEED
         @store[:idnext] = 0
       end
-      @obid = ObID.new(@store[:idchars], @store[:idminlen], @store[:idseed])
     end
   end
   def create(uri)
     uri = URI uri
     @store.transaction do
+      obid = ObID.new(@store[:idchars], @store[:idminlen], @store[:idseed])
       begin
         idval = @store[:idnext]
         @store[:idnext] += 1
-        idstr = @obid.str idval
-      end while !@wordishes.findin(idstr).empty?
-      @store[idval] = uri.to_s
+        idstr = obid.str idval
+      end until @wordishes.findin(idstr).empty? && !@store.root?(idstr)
+      @store[idstr] = uri.to_s
       idstr
     end
   end
   def get(idstr)
-    @store.transaction(true){ @store[@obid.val idstr.to_s] }
+    @store.transaction(true){ @store[idstr.to_s] }
   end
 end
