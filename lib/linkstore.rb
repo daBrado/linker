@@ -30,8 +30,13 @@ class LinkStore
       end
     end
   end
-  def create(uri)
-    uri = URI uri
+  def create(uri, embed:nil)
+    if embed != nil
+      x = loop.reduce(''){|m| break m if uri.index(m)==nil; m+='x'}
+      uri = uri.gsub(embed, x)
+      embed = x
+    end
+    uri = URI(uri).to_s
     @store.transaction do
       obid = ObID.new(@store[:idchars], @store[:idminlen], @store[:idseed])
       begin
@@ -39,7 +44,8 @@ class LinkStore
         @store[:idnext] += 1
         idstr = obid.str idval
       end until @wordishes.findin(idstr).empty? && !@store.root?(idstr)
-      @store[idstr] = uri.to_s
+      uri = uri.gsub(embed, idstr) if embed != nil
+      @store[idstr] = uri
       idstr
     end
   end

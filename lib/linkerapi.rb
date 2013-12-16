@@ -20,8 +20,8 @@ class LinkerAPI
   def get(id)
     @linkstore.get id
   end
-  def create(uri:nil)
-    id = @linkstore.create uri
+  def create(uri:nil,embed:nil)
+    id = @linkstore.create(uri, embed:embed)
     @log.info "#{id} #{uri.inspect}"
     id
   end
