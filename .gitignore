@@ -1,3 +1,4 @@
 .bundle/
 bin/
-vendor/
+vendor/bundle
+vendor/gem

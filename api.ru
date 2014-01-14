@@ -9,6 +9,5 @@ require 'bundler/setup'
 module RequestProxyIp; def trusted_proxy?(ip); super || ip == PROXY_IP; end; end
 module Rack; class Request; prepend RequestProxyIp; end; end
 
-require './lib/apiapp'
 require './lib/linkerapi'
-run APIApp.new(LinkerAPI, DATAFILE, WORDFILE, log: Logger.new(LOG))
+run RackService::App.new(LinkerAPI, DATAFILE, WORDFILE, log: Logger.new(LOG))

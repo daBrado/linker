@@ -1,0 +1,3 @@
+[submodule "vendor/rackservice"]
+	path = vendor/rackservice
+	url = ../rackservice.git

@@ -5,10 +5,9 @@
 #
 
 require_relative './linkstore'
+require_relative '../vendor/rackservice/rackservice'
 
-class LinkerAPI
-  GET = [:get]
-  POST = [:create]
+class LinkerAPI < RackService::API
   def initialize(datafile, wordfile, log:nil)
     @linkstore = LinkStore.new datafile, words: File.open(wordfile)
     @log = log
@@ -16,6 +15,7 @@ class LinkerAPI
   def get(id)
     @linkstore.get id
   end
+  post
   def create(uri:nil,embed:nil)
     id = @linkstore.create(uri, embed:embed)
     @log.info "#{id} #{uri.inspect}"
