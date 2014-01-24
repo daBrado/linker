@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/wordishes'
+
+require 'minitest/spec'
+require 'minitest/autorun'
+
+describe Wordishes do
+  WORDS = ['word', 'Hello', 'loud', 'hi']
+  MINLEN = 3
+  before do
+    @wordishes = Wordishes.new(WORDS, MINLEN)
+  end
+  it "finds the normal word" do
+    @wordishes.findin('yuhellosa').must_equal ['hello']
+  end
+  it "doesn't find the short word" do
+    @wordishes.findin('13hiaj').must_equal []
+  end
+  it "finds the obfuscated word" do
+    @wordishes.findin('tsW0rD77').must_equal ['word']
+  end
+  it "finds overlapping obfuscated word" do
+    @wordishes.findin('qsh3l10uDoop').sort.must_equal ['hello','loud']
+  end
+end
