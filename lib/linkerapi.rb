@@ -4,7 +4,7 @@
 # A web API for managing redirector links.
 #
 
-require_relative './linkstore'
+require_relative 'linkstore'
 require_relative '../vendor/rackservice/rackservice'
 
 class LinkerAPI < RackService::API

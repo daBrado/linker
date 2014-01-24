@@ -4,8 +4,8 @@
 # Use a PStore to create and find mappings between Obfuscated IDs and URIs.
 #
 
-require_relative './obid'
-require_relative './wordishes'
+require_relative 'obid'
+require_relative 'wordishes'
 
 require 'pstore'
 require 'uri'
