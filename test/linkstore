@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/linkstore'
+
+require 'minitest/spec'
+require 'minitest/autorun'
+require 'date'
+require 'tempfile'
+
+describe LinkStore do
+  WORDS = ['one', 'two', 'four']
+  CHARS = [('a'..'z'),('A'..'Y'),('0'..'9')].map{|r|r.to_a}.reduce(:+)
+  EMBED = 'ZZZ'
+  TIMES = 100
+  before do
+    @tempfile = Tempfile.new(Minitest::Spec.current.__name__)
+    @store = LinkStore.new(@tempfile.path, words: WORDS)
+  end
+  after do
+    @tempfile.close; @tempfile.unlink
+  end
+  def mklink
+    mkstr = lambda{(rand(8)+8).times.map{CHARS[rand(CHARS.size)]}.join}
+    "http://#{mkstr.call}.org/#{mkstr.call}?id=#{EMBED}&#{mkstr.call}=#{mkstr.call}"
+  end
+  private :mklink
+  it "can create and get back link" do
+    link = mklink
+    @store.get(@store.create(link)).must_equal link
+  end
+  it "can create and get back link with embedded id" do
+    link = mklink
+    id = @store.create(link, embed:EMBED)
+    uri = URI(link)
+    uri.query = URI::encode_www_form(URI::decode_www_form(uri.query).map{|k,v|k=='id'?[k,id]:[k,v]})
+    @store.get(id).must_equal uri.to_s
+  end
+  it "can create and get back many links" do
+    links = {}
+    TIMES.times do
+      link = mklink
+      id = @store.create link
+      links.include?(id).must_equal false
+      links[id] = link
+      links.each{|id,uri| @store.get(id).must_equal(uri)}
+    end
+  end
+end
