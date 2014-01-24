@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/obid'
+
+require 'minitest/spec'
+require 'minitest/autorun'
+
+CHARS = [('a'..'z'),('A'..'Z'),('0'..'9')].map{|r|r.to_a}.reduce(:+)
+SIZE = 4
+MAXSIZE = 10
+CYCLES = 1000
+
+describe ObID do
+  it "can convert back and forth" do
+    seed = srand; srand seed
+    obid = ObID.new(CHARS, SIZE, seed)
+    CYCLES.times do
+      val = rand CHARS.size**SIZE
+      str = obid.str val
+      val.must_equal obid.val str
+    end
+  end
+  it "can convert large IDs" do
+    seed = srand; srand seed
+    obid = ObID.new(CHARS, SIZE, seed)
+    CYCLES.times do
+      str = (rand(MAXSIZE-SIZE)+SIZE).times.map{CHARS[rand CHARS.size]}.join
+      str,val = (SIZE..str.size).lazy.reverse_each.map{|l|s=str[0...l];[s,obid.val(s)]}.find{|s,v|v!=nil}
+      val.wont_be_nil
+      str.must_equal obid.str val
+    end
+  end
+end
