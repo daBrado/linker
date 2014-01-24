@@ -10,4 +10,4 @@ module RequestProxyIp; def trusted_proxy?(ip); super || ip == PROXY_IP; end; end
 module Rack; class Request; prepend RequestProxyIp; end; end
 
 require './lib/linkerapi'
-run RackService::App.new(LinkerAPI, DATAFILE, WORDFILE, log: Logger.new(LOG))
+run LinkerAPI.new(DATAFILE, WORDFILE, log: Logger.new(LOG))
