@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/linkerapi'
+require_relative '../lib/redirectapp'
+
+require 'minitest/spec'
+require 'minitest/autorun'
+require 'tempfile'
+require 'logger'
+require 'rack'
+
+NULLOG = Logger.new('/dev/null')
+
+describe LinkerAPI do
+  API_PORT = 4560
+  REDIR_PORT = 4561
+  CHARS = [('a'..'z'),('A'..'Y'),('0'..'9')].map{|r|r.to_a}.reduce(:+)
+  def boot(port, app)
+    @servers ||= []
+    thread = Thread.new{ Rack::Server.new(server:'webrick', AccessLog: NULLOG, Logger: NULLOG, Port:port, app:app).start{|s|@servers<<s} }
+    while !(Net::HTTP.get_response('localhost','/',port) rescue nil); thread.join(0); end
+  end
+  before do
+    @store_tmp = Tempfile.new('actions.store')
+    @words_tmp = Tempfile.new('words')
+    boot API_PORT, LinkerAPI.new(@store_tmp.path, @words_tmp.path, log: NULLOG)
+    boot REDIR_PORT, RedirectApp.new("http://localhost:#{API_PORT}", log: NULLOG)
+  end
+  after do
+    @servers.each{|s|s.shutdown}
+    [@store_tmp, @words_tmp].each{|t| t.close; t.unlink}
+  end
+  def create
+    mkstr = lambda{(rand(8)+8).times.map{CHARS[rand(CHARS.size)]}.join}
+    uri = "http://#{mkstr.call}.org/#{mkstr.call}?#{mkstr.call}=#{mkstr.call}"
+    response = Net::HTTP.post_form(URI("http://localhost:#{API_PORT}/create"), {uri: uri})
+    response.code.must_equal "200"
+    [uri, response.body]
+  end
+  private :create
+  it "can create redirect and get via api" do
+    uri, id = create
+    Net::HTTP.get(URI("http://localhost:#{API_PORT}/get/#{id}")).must_equal uri
+  end
+  it "can create action with body data and call via actor app" do
+    uri, id = create
+    response = Net::HTTP.new('localhost',REDIR_PORT).get("/#{id}")
+    response.code.must_equal "302"
+    response['location'].must_equal uri
+  end
+end
