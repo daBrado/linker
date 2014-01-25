@@ -15,6 +15,7 @@ describe LinkerAPI do
   API_PORT = 4560
   REDIR_PORT = 4561
   CHARS = [('a'..'z'),('A'..'Y'),('0'..'9')].map{|r|r.to_a}.reduce(:+)
+  TIMES = 50
   def boot(port, app)
     @servers ||= []
     thread = Thread.new{ Rack::Server.new(server:'webrick', AccessLog: NULLOG, Logger: NULLOG, Port:port, app:app).start{|s|@servers<<s} }
@@ -42,10 +43,24 @@ describe LinkerAPI do
     uri, id = create
     Net::HTTP.get(URI("http://localhost:#{API_PORT}/get/#{id}")).must_equal uri
   end
-  it "can create action with body data and call via actor app" do
-    uri, id = create
-    response = Net::HTTP.new('localhost',REDIR_PORT).get("/#{id}")
-    response.code.must_equal "302"
-    response['location'].must_equal uri
+  def check_api_and_redirect_app times
+    uris = {}
+    times.times do
+      uri, id = create
+      uris[id] = uri
+      threads = []
+      uris.each{|id, uri| threads << Thread.new{[uri, Net::HTTP.new('localhost',REDIR_PORT).get("/#{id}")]}}
+      threads.map do |t|
+        uri, response = t.value
+        response.code.must_equal "302"
+        response['location'].must_equal uri
+      end
+    end
+  end
+  it "can create redirect and follow via app" do
+    check_api_and_redirect_app 1
+  end
+  it "can be hammered" do
+    check_api_and_redirect_app TIMES
   end
 end
