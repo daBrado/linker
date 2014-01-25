@@ -8,7 +8,7 @@ require_relative 'linkstore'
 require_relative '../vendor/rackservice/rackservice'
 
 class LinkerAPI < RackService::API
-  def initialize(datafile, wordfile, log:nil)
+  def initialize(datafile, wordfile, log:Logger.new(STDERR))
     @linkstore = LinkStore.new datafile, words: File.open(wordfile)
     @log = log
   end
