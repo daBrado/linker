@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/linkerapi'
-require_relative '../lib/redirectapp'
+require_relative '../lib/linkerapp'
 
 require 'minitest/spec'
 require 'minitest/autorun'
@@ -25,7 +25,7 @@ describe LinkerAPI do
     @store_tmp = Tempfile.new('actions.store')
     @words_tmp = Tempfile.new('words')
     boot API_PORT, LinkerAPI.new(@store_tmp.path, @words_tmp.path, log: NULLOG)
-    boot REDIR_PORT, RedirectApp.new("http://localhost:#{API_PORT}", log: NULLOG)
+    boot REDIR_PORT, LinkerApp.new("http://localhost:#{API_PORT}", log: NULLOG)
   end
   after do
     @servers.each{|s|s.shutdown}
@@ -43,7 +43,7 @@ describe LinkerAPI do
     uri, id = create
     Net::HTTP.get(URI("http://localhost:#{API_PORT}/get/#{id}")).must_equal uri
   end
-  def check_api_and_redirect_app times
+  def check_api_and_app times
     uris = {}
     times.times do
       uri, id = create
@@ -58,9 +58,9 @@ describe LinkerAPI do
     end
   end
   it "can create redirect and follow via app" do
-    check_api_and_redirect_app 1
+    check_api_and_app 1
   end
   it "can be hammered" do
-    check_api_and_redirect_app TIMES
+    check_api_and_app TIMES
   end
 end

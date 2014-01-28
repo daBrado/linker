@@ -1,6 +1,6 @@
 DATAFILE = './var/links.pstore'
 WORDFILE = './share/words.txt' # Can generate with "aspell dump master"
-LOG = './var/api.log'
+LOG = './var/linkerapi.log'
 
 require 'rubygems'
 require 'bundler/setup'

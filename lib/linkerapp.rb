@@ -1,5 +1,5 @@
 #
-# Redirect App
+# Linker App
 #
 # A Rack application for generating redirections based on the Linker API.
 #
@@ -12,7 +12,7 @@ HTTP_REDIRECT_FOUND = 302
 HTTP_NOT_FOUND = 404
 HTTP_SERVICE_UNAVAILABLE = 503
 
-class RedirectApp
+class LinkerApp
   def initialize(api_uri, log:Logger.new(STDERR))
     @api_uri = URI api_uri
     @log = log
