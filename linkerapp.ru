@@ -1,4 +1,4 @@
-API_URI = 'http://localhost:6313/'
+API_URI = 'http://localhost/api/linker'
 LOG = './var/linkerapp.log'
 
 require 'rubygems'
