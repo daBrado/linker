@@ -9,8 +9,7 @@ This includes an API for creating and querying the links, and an application to 
 To install for deployment, you can do:
 
     RUBY=/path/to/ruby
-    $RUBY/bin/gem install bundler -i vendor/gem -n bin
-    bin/bundle install --deployment --binstubs --shebang $RUBY/bin/ruby
+    $RUBY/bin/bundle install --deployment --binstubs --shebang $RUBY/bin/ruby
 
 Then to run, you can use the installed rackup executable, e.g.:
 
