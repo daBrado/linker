@@ -6,4 +6,5 @@ require 'rubygems'
 require 'bundler/setup'
 
 require './lib/linkerapi'
-run LinkerAPI.new(DATAFILE, WORDFILE, log: Logger.new(LOG))
+log = Logger.new(LOG); log.formatter = RackService::LogFormatter
+run LinkerAPI.new(DATAFILE, WORDFILE, log: log)
