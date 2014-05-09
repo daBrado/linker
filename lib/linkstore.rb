@@ -39,7 +39,7 @@ class LinkStore
     end
     uri = URI(uri).to_s
     @mutex.synchronize do
-      @store.transaction do
+      idstr = @store.transaction do
         obid = ObID.new(@store[:idchars], @store[:idminlen], @store[:idseed])
         begin
           idval = @store[:idnext]
@@ -50,6 +50,8 @@ class LinkStore
         @store[idstr] = uri
         idstr
       end
+      @links[idstr] = uri
+      idstr
     end
   end
   def get(idstr)
