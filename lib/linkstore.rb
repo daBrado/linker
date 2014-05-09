@@ -25,10 +25,12 @@ class LinkStore
       meta = @store.gets
     end
     meta = meta.split
-    @idchars = meta.shift.chars
-    @idminlen, @idseed = meta.map{|v|Integer(v)}
-    @links = @store.map{|l|l.chomp.split(' ',2)}.to_h
-    @idnext = @links.count # This is an underestimate, but on the first new link we'll scan for the correct next ID
+    idchars = meta.shift.chars
+    idminlen, idseed = meta.map{|v|Integer(v)}
+    @obid = ObID.new(idchars, idminlen, idseed)
+    links_list = @store.map{|l|l.chomp.split(' ',2)}
+    @idnext = links_list.empty? ? 0 : @obid.val(links_list.last[0])+1
+    @links = links_list.to_h
     @mutex = Mutex.new
   end
   def create(uri, embed:nil)
@@ -39,11 +41,10 @@ class LinkStore
     end
     uri = URI(uri).to_s
     @mutex.synchronize do
-      obid = ObID.new(@idchars, @idminlen, @idseed)
       begin
         idval = @idnext
         @idnext += 1
-        idstr = obid.str idval
+        idstr = @obid.str idval
       end until @wordishes.findin(idstr).empty? && !@links.key?(idstr)
       uri = uri.gsub(embed, idstr) if embed != nil
       @links[idstr] = uri
