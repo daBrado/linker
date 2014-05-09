@@ -1,7 +1,7 @@
 #
 # Link Store
 #
-# Use a PStore to create and find mappings between Obfuscated IDs and URIs.
+# Store mappings between Obfuscated IDs and URIs, and persist to a flat file.
 #
 
 require_relative 'obid'
