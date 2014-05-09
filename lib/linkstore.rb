@@ -29,6 +29,8 @@ class LinkStore
         @store[:idnext] = 0
       end
     end
+    @mutex = Mutex.new
+    @links = {}
   end
   def create(uri, embed:nil)
     if embed != nil
@@ -50,6 +52,7 @@ class LinkStore
     end
   end
   def get(idstr)
-    @store.transaction(true){ @store[idstr.to_s] }
+    idstr = idstr.to_s
+    @mutex.synchronize{ @links[idstr] ||= @store.transaction(true){ @store[idstr] } }
   end
 end
