@@ -7,7 +7,6 @@
 require_relative 'obid'
 require_relative 'wordishes'
 
-require 'pstore'
 require 'uri'
 
 class LinkStore
@@ -15,21 +14,22 @@ class LinkStore
   IDMINLEN = 4
   IDSEED = Random.new_seed
   WORDMINLEN = 3
-  ULTRA_SAFE_PSTORE = true
   def initialize(file, words: [])
     @wordishes = Wordishes.new(words, WORDMINLEN)
-    @store = PStore.new file
-    @store.ultra_safe = ULTRA_SAFE_PSTORE
-    @store.transaction do
-      if @store.roots.empty?
-        @store[:idchars] = IDCHARS
-        @store[:idminlen] = IDMINLEN
-        @store[:idseed] = IDSEED
-        @store[:idnext] = 0
-      end
+    (@store = File.new file, 'a+').rewind
+    @store.sync = true
+    meta = @store.gets
+    if !meta
+      @store.puts [IDCHARS.join, IDMINLEN, IDSEED].join(' '); @store.fsync
+      @store.rewind
+      meta = @store.gets
     end
+    meta = meta.split
+    @idchars = meta.shift.chars
+    @idminlen, @idseed = meta.map{|v|Integer(v)}
+    @links = @store.map{|l|l.chomp.split(' ',2)}.to_h
+    @idnext = @links.count # This is an underestimate, but on the first new link we'll scan for the correct next ID
     @mutex = Mutex.new
-    @links = {}
   end
   def create(uri, embed:nil)
     if embed != nil
@@ -39,23 +39,19 @@ class LinkStore
     end
     uri = URI(uri).to_s
     @mutex.synchronize do
-      idstr = @store.transaction do
-        obid = ObID.new(@store[:idchars], @store[:idminlen], @store[:idseed])
-        begin
-          idval = @store[:idnext]
-          @store[:idnext] += 1
-          idstr = obid.str idval
-        end until @wordishes.findin(idstr).empty? && !@store.root?(idstr)
-        uri = uri.gsub(embed, idstr) if embed != nil
-        @store[idstr] = uri
-        idstr
-      end
+      obid = ObID.new(@idchars, @idminlen, @idseed)
+      begin
+        idval = @idnext
+        @idnext += 1
+        idstr = obid.str idval
+      end until @wordishes.findin(idstr).empty? && !@links.key?(idstr)
+      uri = uri.gsub(embed, idstr) if embed != nil
       @links[idstr] = uri
+      @store.puts [idstr, uri].join(' '); @store.fsync
       idstr
     end
   end
   def get(idstr)
-    idstr = idstr.to_s
-    @mutex.synchronize{ @links[idstr] ||= @store.transaction(true){ @store[idstr] } }
+    @mutex.synchronize{ @links[idstr.to_s] }
   end
 end

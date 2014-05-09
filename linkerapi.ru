@@ -1,4 +1,4 @@
-DATAFILE = './var/links.pstore'
+DATAFILE = './var/links.txt'
 WORDFILE = './share/words.txt' # Can generate with "aspell dump master"
 LOG = './var/linkerapi.log'
 
