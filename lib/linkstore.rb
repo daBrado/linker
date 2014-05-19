@@ -14,6 +14,7 @@ class LinkStore
   IDMINLEN = 4
   IDSEED = Random.new_seed
   WORDMINLEN = 3
+  REUSABLE_FLAG = 'r'
   def initialize(file, words: [])
     @wordishes = Wordishes.new(words, WORDMINLEN)
     (@store = File.new file, 'a+').rewind
@@ -28,21 +29,26 @@ class LinkStore
     idchars = meta.shift.chars
     idminlen, idseed = meta.map{|v|Integer(v)}
     @obid = ObID.new(idchars, idminlen, idseed)
-    links_list = @store.map{|l|l.chomp.split(' ',2)}
+    links_list = @store.map{|l| id, uri, flags = l.chomp.split(' '); [id, uri, flags||'']}
     @idnext = links_list.empty? ? 0 : @obid.val(links_list.last[0])+1
-    @links = links_list.to_h
+    @links = links_list.map{|id,uri,_|[id,uri]}.to_h
+    @reusable_uris = links_list.select{|_,_,flags|flags.include?(REUSABLE_FLAG)}.map{|id,uri,_|[uri,id]}.to_h
     @mutex = Mutex.new
   end
-  def create(uri)
+  def create(uri, reusable:true)
     uri = URI(uri).to_s
     @mutex.synchronize do
-      begin
-        idval = @idnext
-        @idnext += 1
-        idstr = @obid.str idval
-      end until @wordishes.findin(idstr).empty? && !@links.key?(idstr)
-      @links[idstr] = uri
-      @store.puts [idstr, uri].join(' '); @store.fsync
+      idstr = reusable ? @reusable_uris[uri] : nil
+      if !idstr
+        begin
+          idval = @idnext
+          @idnext += 1
+          idstr = @obid.str idval
+        end until @wordishes.findin(idstr).empty? && !@links.key?(idstr)
+        @links[idstr] = uri
+        @reusable_uris[uri] = idstr if reusable
+        @store.puts [idstr, uri, reusable ? REUSABLE_FLAG : nil].compact.join(' '); @store.fsync
+      end
       idstr
     end
   end
