@@ -26,17 +26,33 @@ describe LinkStore do
     "http://#{mkstr.call}.org/#{mkstr.call}?#{mkstr.call}=#{mkstr.call}"
   end
   private :mklink
-  it "can create and get back link" do
+  it "can create and get back unique link" do
     link = mklink
-    id = store.create(link)
+    id = store.create link, reusable:false
     store.get(id).must_equal link
+    store.create(link, reusable:false).wont_equal id
+  end
+  it "can create and get back reused link" do
+    link = mklink
+    id = store.create link, reusable:true
+    store.get(id).must_equal link
+    store.create(link, reusable:true).must_equal id
+  end
+  it "can create and get back many unique links" do
+    uri = mklink
+    links = {}
+    TIMES.times do
+      id = store.create uri, reusable:false
+      links.include?(id).must_equal false
+      links[id] = uri
+      links.each{|id,uri| store.get(id).must_equal(uri)}
+    end
   end
   it "can create and get back many links" do
     links = {}
     TIMES.times do
       link = mklink
-      id = store.create link
-      links.include?(id).must_equal false
+      id = store.create link, reusable:true
       links[id] = link
       links.each{|id,uri| store.get(id).must_equal(uri)}
     end
