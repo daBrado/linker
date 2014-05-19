@@ -33,12 +33,7 @@ class LinkStore
     @links = links_list.to_h
     @mutex = Mutex.new
   end
-  def create(uri, embed:nil)
-    if embed != nil
-      x = loop.reduce(''){|m| break m if uri.index(m)==nil; m+='x'}
-      uri = uri.gsub(embed, x)
-      embed = x
-    end
+  def create(uri)
     uri = URI(uri).to_s
     @mutex.synchronize do
       begin
@@ -46,7 +41,6 @@ class LinkStore
         @idnext += 1
         idstr = @obid.str idval
       end until @wordishes.findin(idstr).empty? && !@links.key?(idstr)
-      uri = uri.gsub(embed, idstr) if embed != nil
       @links[idstr] = uri
       @store.puts [idstr, uri].join(' '); @store.fsync
       idstr

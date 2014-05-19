@@ -16,8 +16,8 @@ class LinkerAPI < RackService::API
     @linkstore.get id
   end
   post
-  def create(uri:nil,embed:nil)
-    id = @linkstore.create(uri, embed:embed)
+  def create(uri:nil)
+    id = @linkstore.create(uri)
     @log.info "#{id} #{uri.inspect}"
     id
   end
